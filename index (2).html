@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بوابة الفحص الصوتي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue-1:#0d6ecb;
+    --blue-2:#0fa3a3;
+    --bg:#e9f2fb;
+    --card:#ffffff;
+    --line:#e1eaf3;
+    --text-dark:#152233;
+    --text-mid:#5b6b7c;
+    --text-low:#93a1b0;
+    --green:#1f9d55;
+    --green-bg:#e6f7ec;
+    --warn:#b3790c;
+    --warn-bg:#fdeee0;
+    --red:#d1483f;
+    --red-bg:#fdeceb;
+    --shadow:0 8px 24px rgba(20,60,110,0.10);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text-dark);
+    font-family:'Tajawal', sans-serif;
+    min-height:100vh;
+    display:flex; justify-content:center;
+  }
+  .app{
+    width:100%; max-width:480px; min-height:100vh;
+    background:var(--bg);
+    display:flex; flex-direction:column;
+    position:relative;
+    padding-bottom:78px;
+  }
+
+  /* header */
+  header{
+    background: linear-gradient(100deg, var(--blue-1), var(--blue-2));
+    padding:16px 18px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-radius:0 0 22px 22px;
+    box-shadow: 0 8px 20px rgba(13,110,203,0.25);
+  }
+  .hdr-icon{
+    width:36px; height:36px; border-radius:50%;
+    background:rgba(255,255,255,0.15);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:16px; border:none; cursor:pointer;
+  }
+  header h1{
+    font-family:'Cairo',sans-serif; font-weight:800; font-size:19px; color:#fff;
+    letter-spacing:0.2px;
+  }
+
+  main{ flex:1; padding:16px 16px 6px; }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; animation: fadeIn .2s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .no-support{
+    background: var(--red-bg); border:1px solid rgba(209,72,63,0.25);
+    color:#9a352c; font-size:12.5px; padding:12px 14px; border-radius:14px;
+    margin-bottom:14px; line-height:1.7;
+  }
+
+  /* session card */
+  .session-card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:18px; padding:16px; box-shadow:var(--shadow);
+    margin-bottom:14px;
+  }
+  .session-btn{
+    width:100%; border:none; border-radius:14px; cursor:pointer;
+    background: linear-gradient(95deg, var(--blue-1), var(--blue-2));
+    color:#fff; padding:14px 16px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .session-btn.listening{
+    background: linear-gradient(95deg, #e6544a, #c9382f);
+  }
+  .session-btn .txt{ text-align:right; }
+  .session-btn .txt b{ font-family:'Cairo',sans-serif; font-size:14.5px; display:block; }
+  .session-btn .txt span{ font-size:11.5px; opacity:0.85; display:block; margin-top:2px; }
+  .session-btn .mic-circle{
+    width:38px; height:38px; border-radius:50%;
+    background:rgba(255,255,255,0.2);
+    display:flex; align-items:center; justify-content:center; font-size:17px;
+    flex-shrink:0;
+  }
+  .session-btn.listening .mic-circle{ animation:pulse 1.5s infinite; }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(255,255,255,0.35); }
+    70%{ box-shadow:0 0 0 10px rgba(255,255,255,0); }
+    100%{ box-shadow:0 0 0 0 rgba(255,255,255,0); }
+  }
+
+  .quick-toggle{
+    margin-top:12px; width:100%;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background: var(--bg); border:1px solid var(--line); color:var(--text-mid);
+    padding:9px; border-radius:100px; font-size:12.5px; cursor:pointer;
+  }
+  .quick-toggle.on{ border-color:var(--blue-1); color:var(--blue-1); background:#eaf4ff; }
+
+  .lang-row{
+    margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .lang-row .lbl{ font-size:11.5px; color:var(--text-low); white-space:nowrap; }
+  .lang-row select{
+    background:var(--bg); border:1px solid var(--line); border-radius:8px;
+    padding:6px 8px; font-size:11.5px; color:var(--text-dark); font-family:'Tajawal',sans-serif;
+  }
+
+  .debug-line{
+    margin-top:8px; font-size:10.5px; color:var(--text-low);
+    background:var(--bg); border-radius:8px; padding:6px 8px;
+    min-height:14px; word-break:break-word;
+  }
+  .debug-line b{ color:var(--text-mid); }
+
+  .voice-meter{ margin-top:12px; display:flex; align-items:center; gap:10px; }
+  .voice-meter .lbl{ font-size:11.5px; color:var(--text-low); white-space:nowrap; }
+  .meter-track{ flex:1; height:7px; border-radius:100px; background:#eef2f6; overflow:hidden; }
+  .meter-fill{ height:100%; width:0%; border-radius:100px; background:linear-gradient(90deg,#1f9d55,#57c980); transition:width .08s linear; }
+  .meter-pct{ font-size:11.5px; color:var(--green); width:34px; text-align:left; }
+
+  .live-buffer{ margin-top:10px; min-height:18px; font-size:12.5px; color:var(--blue-1); font-family:'Cairo',sans-serif; letter-spacing:1px; }
+
+  .search-results{
+    margin-top:12px; background:var(--bg); border:1px solid var(--line);
+    border-radius:14px; padding:12px;
+  }
+  .search-results .sr-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .search-results .sr-head b{ font-family:'Cairo',sans-serif; font-size:13px; color:var(--text-dark); }
+  .search-results .sr-head button{
+    background:none; border:none; color:var(--text-low); font-size:11.5px; cursor:pointer; text-decoration:underline;
+  }
+  .sr-item{
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px; margin-bottom:8px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .sr-item:last-child{ margin-bottom:0; }
+  .sr-item .plate{ font-family:'Cairo',sans-serif; font-weight:800; font-size:14.5px; color:var(--text-dark); }
+  .sr-item .meta{ font-size:10.5px; color:var(--text-low); margin-top:2px; }
+  .sr-item .tag{ font-size:11px; font-weight:700; padding:4px 9px; border-radius:100px; }
+  .sr-item .tag.ok{ background:var(--green-bg); color:var(--green); }
+  .sr-item .tag.warn{ background:var(--warn-bg); color:var(--warn); }
+  .sr-empty{ font-size:12px; color:var(--text-low); text-align:center; padding:10px 0; }
+
+  .manual-toggle{ text-align:center; margin-top:10px; }
+  .manual-toggle button{ background:none; border:none; color:var(--text-low); font-size:11.5px; text-decoration:underline; cursor:pointer; }
+  .manual-row{ display:flex; gap:8px; margin-top:10px; }
+  .manual-row input{
+    flex:1; background:var(--bg); border:1px solid var(--line); border-radius:10px;
+    padding:9px 10px; color:var(--text-dark); font-size:13px; font-family:'Tajawal',sans-serif;
+  }
+  .manual-row button.add{
+    background:var(--blue-1); border:none; border-radius:10px; padding:0 16px;
+    font-family:'Cairo',sans-serif; font-weight:700; color:#fff; cursor:pointer;
+  }
+
+  /* table card */
+  .table-card{ background:var(--card); border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:var(--shadow); }
+  table{ width:100%; border-collapse:collapse; }
+  thead th{
+    background: linear-gradient(95deg, var(--blue-1), var(--blue-2));
+    font-family:'Cairo',sans-serif; font-weight:700; font-size:13px; color:#fff;
+    padding:12px 8px; text-align:center;
+  }
+  tbody td{ padding:13px 8px; text-align:center; font-size:14px; border-bottom:1px solid var(--line); }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr.ok{ background:var(--green-bg); }
+  tbody tr.warn{ background:var(--warn-bg); }
+  tbody tr.bad{ background:var(--red-bg); }
+  .plate-num{ font-family:'Cairo',sans-serif; font-weight:800; font-size:16px; color:var(--text-dark); }
+  .plate-let{ font-family:'Cairo',sans-serif; font-weight:700; font-size:16px; letter-spacing:2px; color:var(--text-dark); }
+  .status-icon{ font-size:16px; }
+  .status-icon.ok{ color:var(--green); }
+  .status-icon.warn{ color:var(--warn); }
+  .status-icon.bad{ color:var(--red); }
+  .status-label{ font-size:10px; display:block; margin-top:2px; color:var(--text-mid); }
+  .empty-row td{ padding:34px 10px; color:var(--text-low); font-size:12.5px; }
+  .table-scroll{ max-height:280px; overflow-y:auto; }
+
+  .session-count-wrap{ display:flex; justify-content:center; margin-top:-14px; position:relative; z-index:2; }
+  .session-count{
+    background:var(--blue-1); color:#fff; font-size:12px; padding:8px 18px;
+    border-radius:100px; display:flex; align-items:center; gap:8px;
+    box-shadow:0 6px 14px rgba(13,110,203,0.3);
+  }
+  .session-count b{ font-family:'Cairo',sans-serif; }
+
+  /* wanted tab */
+  .wanted-item{
+    background:var(--card); border:1px solid rgba(179,121,12,0.25);
+    border-radius:16px; padding:14px 16px; margin-bottom:12px; box-shadow:var(--shadow);
+  }
+  .wanted-item .top-row{ display:flex; justify-content:space-between; align-items:center; }
+  .wanted-item .plate-badge{ font-family:'Cairo',sans-serif; font-weight:800; font-size:17px; }
+  .wanted-item .tag{ color:var(--warn); font-size:12.5px; display:flex; align-items:center; gap:5px; font-weight:700; }
+  .wanted-item .meta{ font-size:12px; color:var(--text-mid); margin-top:8px; line-height:1.9; }
+  .wanted-item .time{ font-size:10.5px; color:var(--text-low); margin-top:6px; }
+
+  .wanted-config{ margin-top:6px; }
+
+  .import-row{ margin-bottom:10px; }
+  .import-btn{
+    width:100%; background:#fff; border:1.5px dashed var(--blue-1); color:var(--blue-1);
+    border-radius:14px; padding:13px 14px; font-size:13px; font-family:'Cairo',sans-serif; font-weight:700;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .import-btn:active{ transform:scale(0.98); }
+  .import-status{ font-size:11.5px; color:var(--text-mid); margin:6px 2px 14px; min-height:14px; }
+  .import-status.err{ color:var(--red); }
+  .import-status.ok{ color:var(--green); }
+  .wanted-config summary{
+    cursor:pointer; font-size:12.5px; color:var(--text-mid); font-family:'Cairo',sans-serif; font-weight:700;
+    list-style:none; padding:10px 4px;
+  }
+  .wanted-config summary::-webkit-details-marker{ display:none; }
+  textarea{
+    width:100%; background:var(--card); border:1px solid var(--line); border-radius:12px; color:var(--text-dark);
+    padding:10px; font-family:'Tajawal',sans-serif; font-size:12.5px; min-height:64px; resize:vertical;
+  }
+  .wanted-hint{ font-size:11px; color:var(--text-low); margin-top:6px; line-height:1.6; }
+
+  /* all-log tab */
+  .log-topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .log-topbar h2{ font-family:'Cairo',sans-serif; font-size:15px; }
+  .log-sub{ font-size:11.5px; color:var(--text-low); margin-top:2px; }
+  .download-row{ display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .download-btn{
+    border:1.5px solid var(--blue-1); color:var(--blue-1); background:#fff;
+    border-radius:100px; padding:9px 14px; font-size:11.5px; font-family:'Cairo',sans-serif; font-weight:700;
+    display:flex; align-items:center; gap:6px; cursor:pointer; flex:1; justify-content:center; white-space:nowrap;
+  }
+  .download-btn.ok{ border-color:var(--green); color:var(--green); }
+  .download-btn.warn{ border-color:var(--warn); color:var(--warn); }
+  .download-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .log-item{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:12px 14px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;
+    box-shadow:var(--shadow);
+  }
+  .log-item .left{ display:flex; align-items:center; gap:10px; }
+  .log-item .icon{ font-size:16px; }
+  .log-item .icon.ok{ color:var(--green); }
+  .log-item .icon.warn{ color:var(--warn); }
+  .log-item .icon.bad{ color:var(--red); }
+  .log-item .info b{ font-family:'Cairo',sans-serif; font-size:14px; display:block; }
+  .log-item .info span{ font-size:10.5px; color:var(--text-low); }
+  .log-item .status-txt{ font-size:11.5px; font-weight:700; }
+  .log-item .status-txt.ok{ color:var(--green); }
+  .log-item .status-txt.warn{ color:var(--warn); }
+  .log-item .status-txt.bad{ color:var(--red); }
+
+  /* bottom nav */
+  nav.bottom-nav{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px; background:#fff;
+    border-top:1px solid var(--line);
+    display:flex; padding:10px 10px 14px;
+    box-shadow:0 -6px 18px rgba(20,60,110,0.08);
+  }
+  nav.bottom-nav button{
+    flex:1; background:none; border:none; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    color:var(--text-low); font-size:11.5px; font-family:'Tajawal',sans-serif;
+    padding:6px 0;
+  }
+  nav.bottom-nav button .ic{ font-size:19px; }
+  nav.bottom-nav button.active{ color:var(--blue-1); font-weight:700; }
+  nav.bottom-nav button.active .ic{ transform:scale(1.05); }
+
+  /* toast */
+  #toast-wrap{
+    position:fixed; top:14px; left:50%; transform:translateX(-50%);
+    z-index:50; display:flex; flex-direction:column; gap:8px; width:calc(100% - 32px); max-width:448px;
+  }
+  .toast{
+    background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px 14px;
+    box-shadow:var(--shadow); display:flex; align-items:center; gap:10px;
+    animation: slideDown .25s ease, fadeOut .4s ease 2.6s forwards;
+  }
+  .toast.warn{ border-color: rgba(179,121,12,0.4); }
+  .toast .ic{ font-size:20px; }
+  .toast .body b{ font-family:'Cairo',sans-serif; display:block; font-size:13.5px; color:var(--text-dark); }
+  .toast .body span{ font-size:11.5px; color:var(--text-low); }
+  @keyframes slideDown{ from{opacity:0; transform:translateY(-14px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes fadeOut{ to{opacity:0; transform:translateY(-8px);} }
+</style>
+</head>
+<body>
+<div id="toast-wrap"></div>
+<div class="app">
+
+  <header>
+    <button class="hdr-icon" id="themeBtn">🌙</button>
+    <h1>بوابة الفحص الصوتي</h1>
+    <button class="hdr-icon" id="resetBtn">⏻</button>
+  </header>
+
+  <main>
+    <div id="noSupportMsg" class="no-support" style="display:none;">
+      المتصفح ده مش بيدعم التعرف الصوتي (Web Speech API). جربي كروم على الموبايل أو اللابتوب، أو استخدمي الإدخال اليدوي.
+    </div>
+
+    <!-- tab: الفحص -->
+    <section class="tab-panel active" id="tab-scan">
+      <div class="session-card" id="sessionCard">
+        <button class="session-btn" id="micBtn">
+          <div class="mic-circle">🎙️</div>
+          <div class="txt">
+            <b id="sessionTitle">بدء الجلسة الصوتية</b>
+            <span id="sessionSubtitle">جاهز للاستماع والتعبئة التلقائية</span>
+          </div>
+        </button>
+
+        <button class="quick-toggle" id="quickToggle">⚡ الوضع السريع</button>
+
+        <div class="lang-row">
+          <span class="lbl">لهجة التعرف الصوتي</span>
+          <select id="langSelect">
+            <option value="ar-EG">مصرية (ar-EG)</option>
+            <option value="ar-SA">سعودية (ar-SA)</option>
+            <option value="ar">عربي عام (ar)</option>
+          </select>
+        </div>
+
+        <div class="voice-meter">
+          <span class="lbl">الصوت</span>
+          <div class="meter-track"><div class="meter-fill" id="meterFill"></div></div>
+          <span class="meter-pct" id="meterPct">0%</span>
+        </div>
+
+        <div class="live-buffer" id="liveBuffer"></div>
+        <div class="debug-line" id="debugLine"><b>آخر نص اتسمع:</b> —</div>
+        <div class="search-results" id="searchResults" style="display:none;"></div>
+
+        <div class="manual-toggle"><button id="manualToggleBtn">إدخال يدوي بدل الصوت</button></div>
+        <div class="manual-row" id="manualRow" style="display:none;">
+          <input type="text" id="manualInput" placeholder="مثال: ر ب ل 2626">
+          <button class="add" id="manualAdd">إضافة</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>الحالة</th><th>الأرقام</th><th>الحروف</th></tr></thead>
+            <tbody id="plateBody">
+              <tr class="empty-row"><td colspan="3">لسه مفيش لوحات — دوسي المايك وابدئي الكلام</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="session-count-wrap">
+        <div class="session-count">🚗 لوحات الجلسة <b id="sessionCount">0</b></div>
+      </div>
+    </section>
+
+    <!-- tab: مطلوب -->
+    <section class="tab-panel" id="tab-wanted">
+      <div class="import-row">
+        <button class="import-btn" id="importExcelBtn">📁 رفع ملف إكسيل باللوحات</button>
+        <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none;">
+      </div>
+      <div class="import-status" id="importStatus"></div>
+
+      <div id="wantedItems"></div>
+      <div id="wantedEmpty" class="table-card" style="padding:34px 10px; text-align:center; color:var(--text-low); font-size:12.5px;">
+        لسه مفيش لوحات مطلوبة اتسجلت في الجلسة
+      </div>
+
+      <details class="wanted-config">
+        <summary>⚙️ تعديل قائمة اللوحات المطلوبة (<span id="wantedCount">0</span> لوحة)</summary>
+        <textarea id="wantedList" placeholder="اكتبي كل لوحة في سطر: الحروف مسافة الأرقام"></textarea>
+        <div class="wanted-hint">أي لوحة متقالة بالصوت وتطابق واحدة هنا هتتسجل "مطلوبة". رفع ملف الإكسيل بيضيف لوحاته هنا تلقائي.</div>
+      </details>
+    </section>
+
+    <!-- tab: الكل -->
+    <section class="tab-panel" id="tab-all">
+      <div class="log-topbar">
+        <div>
+          <h2>السجل الشامل</h2>
+          <div class="log-sub">كل محاولات الفحص في الجلسة</div>
+        </div>
+      </div>
+      <div class="download-row">
+        <button class="download-btn ok" id="downloadOkBtn" disabled>⬇️ تنزيل السليمة</button>
+        <button class="download-btn warn" id="downloadWantedBtn" disabled>⬇️ تنزيل المطلوبة</button>
+        <button class="download-btn all" id="downloadLogBtn" disabled>⬇️ تنزيل الكل</button>
+      </div>
+      <div id="allItems"></div>
+      <div id="allEmpty" class="table-card" style="padding:34px 10px; text-align:center; color:var(--text-low); font-size:12.5px;">
+        لسه مفيش محاولات فحص مسجّلة
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button data-tab="tab-wanted" id="navWanted"><span class="ic">⚠️</span>مطلوب</button>
+    <button data-tab="tab-scan" id="navScan" class="active"><span class="ic">📷</span>الفحص</button>
+    <button data-tab="tab-all" id="navAll"><span class="ic">📋</span>الكل</button>
+  </nav>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+  const micBtn = document.getElementById('micBtn');
+  const sessionTitle = document.getElementById('sessionTitle');
+  const sessionSubtitle = document.getElementById('sessionSubtitle');
+  const meterFill = document.getElementById('meterFill');
+  const meterPct = document.getElementById('meterPct');
+  const liveBuffer = document.getElementById('liveBuffer');
+  const searchResults = document.getElementById('searchResults');
+  const debugLine = document.getElementById('debugLine');
+  const langSelect = document.getElementById('langSelect');
+  const plateBody = document.getElementById('plateBody');
+  const sessionCount = document.getElementById('sessionCount');
+  const quickToggle = document.getElementById('quickToggle');
+  const wantedList = document.getElementById('wantedList');
+  const wantedCount = document.getElementById('wantedCount');
+  const importExcelBtn = document.getElementById('importExcelBtn');
+  const excelFileInput = document.getElementById('excelFileInput');
+  const importStatus = document.getElementById('importStatus');
+  const manualToggleBtn = document.getElementById('manualToggleBtn');
+  const manualRow = document.getElementById('manualRow');
+  const manualInput = document.getElementById('manualInput');
+  const manualAdd = document.getElementById('manualAdd');
+  const toastWrap = document.getElementById('toast-wrap');
+  const noSupportMsg = document.getElementById('noSupportMsg');
+  const downloadLogBtn = document.getElementById('downloadLogBtn');
+  const downloadOkBtn = document.getElementById('downloadOkBtn');
+  const downloadWantedBtn = document.getElementById('downloadWantedBtn');
+  const wantedItems = document.getElementById('wantedItems');
+  const wantedEmpty = document.getElementById('wantedEmpty');
+  const allItems = document.getElementById('allItems');
+  const allEmpty = document.getElementById('allEmpty');
+  const themeBtn = document.getElementById('themeBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let allAttempts = [];
+  let plateCount = 0;
+  let listening = false;
+  let quickMode = false;
+  let silenceTimer = null;
+  let recognition = null;
+  let audioCtx = null, analyser = null, meterRAF = null;
+
+  const SILENCE_MS_NORMAL = 1800;
+  const SILENCE_MS_QUICK = 900;
+  let buf = { letters: [], numbers: '' };
+  let searchMode = null; // null | 'numbers' | 'letters'
+
+  const letterMap = {
+    'ألف':'أ','الف':'أ','أ':'أ','ا':'أ','باء':'ب','با':'ب','ب':'ب','تاء':'ت','تا':'ت','ت':'ت',
+    'جيم':'ج','ج':'ج','حاء':'ح','حا':'ح','ح':'ح','دال':'د','د':'د','راء':'ر','را':'ر','ر':'ر',
+    'زاي':'ز','ز':'ز','سين':'س','س':'س','شين':'ش','ش':'ش','صاد':'ص','ص':'ص','ضاد':'ض','ض':'ض',
+    'طاء':'ط','طا':'ط','ط':'ط','ظاء':'ظ','ظ':'ظ','عين':'ع','ع':'ع','غين':'غ','غ':'غ','فاء':'ف','فا':'ف','ف':'ف',
+    'قاف':'ق','ق':'ق','كاف':'ك','ك':'ك','لام':'ل','ل':'ل','ميم':'م','م':'م','نون':'ن','ن':'ن',
+    'هاء':'ه','ها':'ه','ه':'ه','واو':'و','و':'و','ياء':'ي','يا':'ي','ي':'ي'
+  };
+  const numberWordMap = {
+    'صفر':'0','واحد':'1','واحدة':'1','اتنين':'2','إتنين':'2','اثنين':'2','إثنين':'2',
+    'تلاتة':'3','ثلاثة':'3','تلاته':'3','اربعة':'4','أربعة':'4','اربعه':'4','خمسة':'5','خمسه':'5',
+    'ستة':'6','سته':'6','سبعة':'7','سبعه':'7','تمانية':'8','ثمانية':'8','تمانيه':'8','تسعة':'9','تسعه':'9'
+  };
+
+  function isDigitToken(tok){ return /^[0-9]+$/.test(tok); }
+
+  // detects phrases like "أرقام بس" / "أرقام فقط" / "بس أرقام" (and letters equivalent)
+  // strips the trigger words out and returns the remaining transcript to classify normally
+  function detectSearchTrigger(transcript){
+    const numTrigger = /(ارقام|أرقام)\s*(بس|فقط)|(بس|فقط)\s*(ارقام|أرقام)/;
+    const letTrigger = /(احرف|أحرف|حروف)\s*(بس|فقط)|(بس|فقط)\s*(احرف|أحرف|حروف)/;
+    if(numTrigger.test(transcript)){
+      searchMode = 'numbers';
+      buf = { letters: [], numbers: '' };
+      return transcript.replace(numTrigger, '').trim();
+    }
+    if(letTrigger.test(transcript)){
+      searchMode = 'letters';
+      buf = { letters: [], numbers: '' };
+      return transcript.replace(letTrigger, '').trim();
+    }
+    return transcript;
+  }
+
+  function runVoiceSearch(){
+    const type = searchMode;
+    const query = type === 'numbers' ? buf.numbers : buf.letters.join('');
+    searchMode = null;
+    buf = { letters: [], numbers: '' };
+    updateLiveBuffer();
+    if(!query) return;
+
+    // search across everything logged this session, plus the wanted-list
+    const fromLog = allAttempts.filter(a => type === 'numbers' ? a.numbers === query : a.letters === query);
+    const wantedOnly = parseWantedList().filter(w => type === 'numbers' ? w.numbers === query : w.letters === query);
+
+    const seen = new Set(fromLog.map(a => a.letters + '|' + a.numbers));
+    const extraWanted = wantedOnly
+      .filter(w => !seen.has(w.letters + '|' + w.numbers))
+      .map(w => ({ time: '—', letters: w.letters || '—', numbers: w.numbers || '—', status: 'wanted' }));
+
+    const results = [...fromLog, ...extraWanted];
+    renderSearchResults(type, query, results);
+  }
+
+  function renderSearchResults(type, query, results){
+    const typeLabel = type === 'numbers' ? 'الأرقام' : 'الحروف';
+    if(results.length === 0){
+      searchResults.style.display = 'block';
+      searchResults.innerHTML = `
+        <div class="sr-head"><b>بحث بـ${typeLabel}: ${query}</b><button id="srClear">إغلاق</button></div>
+        <div class="sr-empty">مفيش لوحات تانية بنفس ${typeLabel} دي</div>`;
+      document.getElementById('srClear').addEventListener('click', ()=>{ searchResults.style.display='none'; });
+      showToastCustom(`مفيش لوحات تانية بنفس ${typeLabel} "${query}"`, false);
+      return;
+    }
+    searchResults.style.display = 'block';
+    searchResults.innerHTML = `
+      <div class="sr-head"><b>لقيت ${results.length} لوحة بنفس ${typeLabel}: ${query}</b><button id="srClear">إغلاق</button></div>
+      ${results.map(r => `
+        <div class="sr-item">
+          <div>
+            <div class="plate">${r.letters} &nbsp; ${r.numbers}</div>
+            <div class="meta">${r.time}</div>
+          </div>
+          <span class="tag ${r.status === 'wanted' ? 'warn' : 'ok'}">${r.status === 'wanted' ? 'مطلوب' : 'سليمة'}</span>
+        </div>`).join('')}
+    `;
+    document.getElementById('srClear').addEventListener('click', ()=>{ searchResults.style.display='none'; });
+    showToastCustom(`لقيت ${results.length} لوحة بنفس ${typeLabel} "${query}"`, results.some(r=>r.status==='wanted'));
+  }
+
+  function showToastCustom(msg, warn){
+    const el = document.createElement('div');
+    el.className = 'toast' + (warn ? ' warn' : '');
+    el.innerHTML = `<div class="ic">🔎</div><div class="body"><b>${msg}</b></div>`;
+    toastWrap.appendChild(el);
+    setTimeout(()=> el.remove(), 3400);
+  }
+
+  function normalizeToken(token){
+    // convert Arabic-Indic digits to Western digits
+    const indic = '٠١٢٣٤٥٦٧٨٩';
+    token = token.replace(/[٠-٩]/g, d => String(indic.indexOf(d)));
+    // strip diacritics/tatweel
+    token = token.replace(/[\u0617-\u061A\u064B-\u0652\u0640]/g, '');
+    // unify alef variants for matching
+    token = token.replace(/[إأآ]/g, 'ا');
+    return token.trim();
+  }
+
+  function classifyAndAdd(token){
+    token = normalizeToken(token);
+    if(!token) return;
+    if(isDigitToken(token)){ buf.numbers = (buf.numbers + token).slice(0,4); return; }
+    if(numberWordMap[token] !== undefined){ buf.numbers = (buf.numbers + numberWordMap[token]).slice(0,4); return; }
+    if(letterMap[token] !== undefined){ if(buf.letters.length < 3) buf.letters.push(letterMap[token]); return; }
+    if(/^[\u0621-\u064A]$/.test(token) && buf.letters.length < 3){ buf.letters.push(token); return; }
+    // fallback: the plate letters were said quickly and the recognizer fused them into
+    // one Arabic "word" (e.g. "ربل" instead of "ر ب ل") — split it into its letters
+    if(/^[\u0621-\u064A]{2,4}$/.test(token) && buf.letters.length === 0){
+      token.split('').forEach(ch => { if(buf.letters.length < 3) buf.letters.push(ch); });
+    }
+  }
+  function updateLiveBuffer(){
+    const letters = buf.letters.join(' ');
+    const nums = buf.numbers;
+    if(searchMode){
+      const q = searchMode === 'numbers' ? nums : letters;
+      liveBuffer.textContent = `🔎 بيدوّر بـ${searchMode === 'numbers' ? 'الأرقام' : 'الحروف'}: ${q}`;
+      return;
+    }
+    liveBuffer.textContent = (letters || nums) ? `بيسمع: ${letters}  ${nums}` : '';
+  }
+  function parseWantedList(){
+    return wantedList.value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+      const parts = l.split(/\s+/);
+      const nums = parts.filter(p=>/^[0-9]+$/.test(p)).join('');
+      const lets = parts.filter(p=>!/^[0-9]+$/.test(p)).join('');
+      return { letters: lets.replace(/\s+/g,''), numbers: nums };
+    });
+  }
+  function isWanted(letters, numbers){
+    const list = parseWantedList();
+    return list.some(item => item.numbers === numbers && (item.letters === letters || item.letters === ''));
+  }
+  function refreshWantedCount(){
+    wantedCount.textContent = parseWantedList().length;
+  }
+  wantedList.addEventListener('input', refreshWantedCount);
+
+  // ---- Excel/CSV import ----
+  importExcelBtn.addEventListener('click', () => excelFileInput.click());
+
+  excelFileInput.addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    importStatus.className = 'import-status';
+    importStatus.textContent = 'بيتقرأ الملف...';
+
+    if(typeof XLSX === 'undefined'){
+      importStatus.className = 'import-status err';
+      importStatus.textContent = 'مكتبة قراءة الإكسيل مش محمّلة — تأكدي إن عندك اتصال بالإنترنت وجرّبي تاني.';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        const data = new Uint8Array(ev.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        const extracted = extractPlatesFromRows(rows);
+
+        if(extracted.length === 0){
+          importStatus.className = 'import-status err';
+          importStatus.textContent = 'مش لاقي أعمدة لوحات في الملف ده. اعملي عمود للحروف وعمود للأرقام (أو عمود واحد فيه اللوحة كاملة) وجربي تاني.';
+          return;
+        }
+
+        // merge with existing list, skipping exact duplicates
+        const existing = parseWantedList();
+        const existingKeys = new Set(existing.map(p => p.letters + '|' + p.numbers));
+        const newLines = [];
+        extracted.forEach(p => {
+          const key = p.letters + '|' + p.numbers;
+          if(!existingKeys.has(key)){ existingKeys.add(key); newLines.push(`${p.letters} ${p.numbers}`.trim()); }
+        });
+
+        const currentText = wantedList.value.trim();
+        wantedList.value = (currentText ? currentText + '\n' : '') + newLines.join('\n');
+        refreshWantedCount();
+
+        importStatus.className = 'import-status ok';
+        importStatus.textContent = `تم استيراد ${newLines.length} لوحة جديدة من "${file.name}" (إجمالي القائمة الآن: ${parseWantedList().length}).`;
+        showToastCustom(`اتضافت ${newLines.length} لوحة من الملف`, false);
+      } catch(err){
+        importStatus.className = 'import-status err';
+        importStatus.textContent = 'حصل خطأ في قراءة الملف — تأكدي إنه ملف إكسيل أو CSV سليم.';
+        console.error(err);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    excelFileInput.value = '';
+  });
+
+  // Accepts rows as arrays. Looks for header names like "حروف/letters" and "ارقام/numbers",
+  // or falls back to column A = letters, column B = numbers, or a single combined "لوحة" column.
+  function extractPlatesFromRows(rows){
+    if(!rows || rows.length === 0) return [];
+    const results = [];
+    const normCell = v => String(v == null ? '' : v).trim();
+
+    const headerRow = rows[0].map(normCell);
+    const letterColIdx = headerRow.findIndex(h => /حروف|letters?/i.test(h));
+    const numberColIdx = headerRow.findIndex(h => /ارقام|أرقام|رقم|numbers?/i.test(h));
+    const combinedColIdx = headerRow.findIndex(h => /لوحة|plate/i.test(h));
+
+    const hasHeader = letterColIdx !== -1 || numberColIdx !== -1 || combinedColIdx !== -1;
+    const dataRows = hasHeader ? rows.slice(1) : rows;
+
+    dataRows.forEach(row => {
+      if(!row || row.every(c => normCell(c) === '')) return;
+      let letters = '', numbers = '';
+
+      if(letterColIdx !== -1 || numberColIdx !== -1){
+        letters = letterColIdx !== -1 ? normCell(row[letterColIdx]) : '';
+        numbers = numberColIdx !== -1 ? normCell(row[numberColIdx]) : '';
+      } else if(combinedColIdx !== -1){
+        const combined = normCell(row[combinedColIdx]);
+        numbers = (combined.match(/[0-9٠-٩]+/g) || []).join('');
+        letters = combined.replace(/[0-9٠-٩\s]/g, '');
+      } else {
+        // no header: assume col A = letters, col B = numbers
+        letters = normCell(row[0]);
+        numbers = normCell(row[1]);
+        // if col A looks numeric and col B looks like letters, swap
+        if(/^[0-9٠-٩]+$/.test(letters) && /[\u0621-\u064A]/.test(numbers)){
+          [letters, numbers] = [numbers, letters];
+        }
+      }
+
+      letters = normalizeToken(letters).replace(/[^\u0621-\u064A]/g, '');
+      numbers = numbers.replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/[^0-9]/g, '').slice(0,4);
+
+      if(letters || numbers) results.push({ letters, numbers });
+    });
+
+    return results;
+  }
+
+  function showToast(letters, numbers, wanted, bad){
+    const el = document.createElement('div');
+    el.className = 'toast' + (wanted||bad ? ' warn' : '');
+    el.innerHTML = `<div class="ic">${bad ? '❗' : (wanted ? '⚠️' : '✅')}</div>
+      <div class="body">
+        <b>${bad ? 'تعذّر التعرف على اللوحة' : (wanted ? 'لوحة مطلوب!' : 'تم رصد اللوحة')}</b>
+        <span>${letters || '—'} &nbsp; ${numbers || '—'}</span>
+      </div>`;
+    toastWrap.appendChild(el);
+    setTimeout(()=> el.remove(), 3100);
+  }
+
+  function renderWantedTab(){
+    const wantedOnly = allAttempts.filter(a=>a.status==='wanted');
+    wantedEmpty.style.display = wantedOnly.length ? 'none' : 'block';
+    wantedItems.innerHTML = wantedOnly.map(a => `
+      <div class="wanted-item">
+        <div class="top-row">
+          <span class="plate-badge">${a.letters} &nbsp; ${a.numbers}</span>
+          <span class="tag">⚠️ مطلوب</span>
+        </div>
+        <div class="meta">تم رصدها بالفحص الصوتي</div>
+        <div class="time">${a.time}</div>
+      </div>`).join('');
+  }
+  function renderAllTab(){
+    allEmpty.style.display = allAttempts.length ? 'none' : 'block';
+    downloadLogBtn.disabled = allAttempts.length === 0;
+    downloadOkBtn.disabled = allAttempts.filter(a=>a.status==='ok').length === 0;
+    downloadWantedBtn.disabled = allAttempts.filter(a=>a.status==='wanted').length === 0;
+    allItems.innerHTML = allAttempts.map(a=>{
+      const cls = a.status==='wanted' ? 'warn' : (a.status==='bad' ? 'bad' : 'ok');
+      const icon = a.status==='wanted' ? '⚠️' : (a.status==='bad' ? '❗' : '✅');
+      const label = a.status==='wanted' ? 'مطلوب' : (a.status==='bad' ? 'تعذّر التعرف' : 'سليمة');
+      return `<div class="log-item">
+        <div class="left">
+          <span class="icon ${cls}">${icon}</span>
+          <div class="info"><b>${a.letters} &nbsp; ${a.numbers}</b><span>${a.time}</span></div>
+        </div>
+        <span class="status-txt ${cls}">${label}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function finalizePlate(){
+    if(searchMode){ runVoiceSearch(); return; }
+    const letters = buf.letters.join('');
+    const numbers = buf.numbers;
+    buf = { letters: [], numbers: '' };
+    updateLiveBuffer();
+    if(!letters && !numbers) return;
+
+    const bad = !numbers;
+    const wanted = !bad && isWanted(letters, numbers);
+    const statusKey = bad ? 'bad' : (wanted ? 'wanted' : 'ok');
+
+    plateCount++;
+    sessionCount.textContent = plateCount;
+
+    const now = new Date();
+    const timeStr = now.toLocaleString('ar-EG', { hour12:true });
+    allAttempts.unshift({ time: timeStr, letters: letters || '—', numbers: numbers || '—', status: statusKey });
+
+    if(plateBody.querySelector('.empty-row')) plateBody.innerHTML = '';
+    const tr = document.createElement('tr');
+    tr.className = statusKey === 'ok' ? 'ok' : (statusKey === 'wanted' ? 'warn' : 'bad');
+    const icon = statusKey === 'ok' ? '✅' : (statusKey === 'wanted' ? '⚠️' : '❗');
+    const label = statusKey === 'ok' ? 'سليمة' : (statusKey === 'wanted' ? 'مطلوب' : 'تعذّر');
+    tr.innerHTML = `
+      <td><span class="status-icon ${tr.className}">${icon}</span><span class="status-label">${label}</span></td>
+      <td class="plate-num">${numbers || '—'}</td>
+      <td class="plate-let">${letters || '—'}</td>`;
+    plateBody.prepend(tr);
+
+    showToast(letters, numbers, wanted, bad);
+    renderWantedTab();
+    renderAllTab();
+  }
+
+  function resetSilenceTimer(){
+    if(silenceTimer) clearTimeout(silenceTimer);
+    const ms = quickMode ? SILENCE_MS_QUICK : SILENCE_MS_NORMAL;
+    silenceTimer = setTimeout(finalizePlate, ms);
+  }
+
+  function startMeter(stream){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 512;
+    source.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    function tick(){
+      analyser.getByteFrequencyData(data);
+      let sum = 0; for(let i=0;i<data.length;i++) sum += data[i];
+      const avg = sum / data.length;
+      const pct = Math.min(100, Math.round((avg/90)*100));
+      meterFill.style.width = pct + '%';
+      meterPct.textContent = pct + '%';
+      meterRAF = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+  function stopMeter(){
+    if(meterRAF) cancelAnimationFrame(meterRAF);
+    if(audioCtx) audioCtx.close().catch(()=>{});
+    meterFill.style.width = '0%'; meterPct.textContent = '0%';
+  }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const isSecure = window.isSecureContext || location.hostname === 'localhost';
+  let recognitionActive = false; // guards against overlapping start() calls
+  let restartTimer = null;
+
+  if(!isSecure){
+    noSupportMsg.style.display = 'block';
+    noSupportMsg.innerHTML = 'المتصفح بيمنع استخدام المايك لأن الصفحة متفتحة من ملف على الجهاز مباشرة (file://) مش من رابط آمن (https). ' +
+      '<br><br><b>الحل:</b> ارفعي الملف على أي استضافة بسيطة زي GitHub Pages أو Netlify، أو شغّليه من خلال سيرفر محلي (مثلاً افتحي Terminal في مجلد الملف واكتبي <code style="background:#f2f2f2;padding:2px 5px;border-radius:4px;">python3 -m http.server</code> وبعدين افتحي <code style="background:#f2f2f2;padding:2px 5px;border-radius:4px;">http://localhost:8000</code> من كروم).';
+    micBtn.disabled = true; micBtn.style.opacity = 0.5;
+    sessionSubtitle.textContent = 'المايك مش متاح على الرابط ده';
+  } else if(!SR){
+    noSupportMsg.style.display = 'block';
+    micBtn.disabled = true; micBtn.style.opacity = 0.5;
+  } else {
+    setupRecognition();
+  }
+
+  function setupRecognition(){
+    recognition = new SR();
+    recognition.lang = (langSelect && langSelect.value) || 'ar-EG';
+    // continuous mode is unreliable on many mobile browsers — we instead run short
+    // utterance cycles and auto-restart on end, which behaves far more consistently.
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onstart = function(){
+      recognitionActive = true;
+      sessionSubtitle.textContent = 'بيسمع دلوقتي… اتكلمي براحتك';
+    };
+    recognition.onaudiostart = function(){
+      debugLine.innerHTML = `<b>الحالة:</b> المايك شغال وبيستقبل صوت 🎤`;
+    };
+    recognition.onspeechstart = function(){
+      sessionSubtitle.textContent = 'باسمعك… كملي';
+    };
+    recognition.onresult = function(event){
+      for(let i = event.resultIndex; i < event.results.length; i++){
+        const res = event.results[i];
+        let transcript = res[0].transcript.trim();
+        debugLine.innerHTML = `<b>آخر نص اتسمع${res.isFinal ? '' : ' (لسه بيسمع)'}:</b> ${transcript || '—'}`;
+        if(res.isFinal){
+          transcript = detectSearchTrigger(transcript);
+          transcript.split(/\s+/).forEach(classifyAndAdd);
+          updateLiveBuffer();
+          resetSilenceTimer();
+        } else { resetSilenceTimer(); }
+      }
+    };
+    recognition.onerror = function(e){
+      debugLine.innerHTML = `<b>آخر نص اتسمع:</b> — <span style="color:var(--red)">(خطأ: ${e.error})</span>`;
+      if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+        sessionSubtitle.textContent = 'رفضتِ إذن المايك — دوسي على أيقونة القفل/المايك بجانب الرابط وسمحي بيه';
+        stopSession();
+      } else if(e.error === 'no-speech'){
+        // benign — the restart loop in onend will pick things back up
+        sessionSubtitle.textContent = 'مش سامع صوت… اتأكدي إنك قريبة من المايك';
+      } else if(e.error === 'audio-capture'){
+        sessionSubtitle.textContent = 'مفيش مايك متاح على الجهاز ده';
+        stopSession();
+      } else if(e.error === 'network'){
+        sessionSubtitle.textContent = 'في مشكلة في الاتصال بخدمة التعرف الصوتي — جربي تاني';
+      } else if(e.error === 'language-not-supported'){
+        sessionSubtitle.textContent = 'اللهجة دي مش مدعومة على الجهاز ده — جربي لهجة تانية من القائمة فوق';
+      } else if(e.error === 'aborted'){
+        // happens on manual stop/restart cycles — ignore
+      }
+    };
+    recognition.onend = function(){
+      recognitionActive = false;
+      if(listening){
+        // small delay avoids "recognition already started" errors on rapid restarts
+        clearTimeout(restartTimer);
+        restartTimer = setTimeout(()=>{
+          if(listening && !recognitionActive){
+            try{ recognition.start(); }catch(e){ /* ignore transient race */ }
+          }
+        }, 250);
+      }
+    };
+  }
+
+  if(langSelect){
+    langSelect.addEventListener('change', ()=>{
+      if(!recognition) return;
+      recognition.lang = langSelect.value;
+      if(listening){ try{ recognition.stop(); }catch(e){} }
+    });
+  }
+
+  function startSession(){
+    if(!recognition) return;
+    listening = true;
+    micBtn.classList.add('listening');
+    sessionTitle.textContent = 'إيقاف الجلسة الصوتية';
+    sessionSubtitle.textContent = 'بيطلب إذن المايك...';
+    debugLine.innerHTML = `<b>آخر نص اتسمع:</b> —`;
+
+    if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)){
+      sessionSubtitle.textContent = 'المتصفح ده مش بيدعم الوصول للمايك';
+      listening = false; micBtn.classList.remove('listening');
+      return;
+    }
+
+    // request the mic explicitly first — on many browsers, calling recognition.start()
+    // without this can silently fail or never fire onresult even if a permission
+    // prompt was accepted earlier for a different feature.
+    navigator.mediaDevices.getUserMedia({audio:true}).then(stream => {
+      startMeter(stream);
+      try{ recognition.start(); }
+      catch(e){
+        sessionSubtitle.textContent = 'حصل خطأ في بدء الاستماع: ' + e.message;
+        listening = false; micBtn.classList.remove('listening');
+      }
+    }).catch(err => {
+      sessionSubtitle.textContent = 'مرفوض إذن المايك — دوسي على أيقونة القفل بجانب الرابط وفعّلي المايك، وبعدين رفريشي الصفحة';
+      listening = false; micBtn.classList.remove('listening');
+      console.warn('getUserMedia error', err);
+    });
+  }
+  function stopSession(){
+    listening = false;
+    clearTimeout(restartTimer);
+    micBtn.classList.remove('listening');
+    sessionTitle.textContent = 'بدء الجلسة الصوتية';
+    sessionSubtitle.textContent = 'جاهز للاستماع والتعبئة التلقائية';
+    if(recognition){ try{ recognition.stop(); }catch(e){} }
+    if(silenceTimer){ clearTimeout(silenceTimer); finalizePlate(); }
+    stopMeter();
+  }
+  micBtn.addEventListener('click', function(){ if(listening) stopSession(); else startSession(); });
+
+  quickToggle.addEventListener('click', function(){
+    quickMode = !quickMode;
+    quickToggle.classList.toggle('on', quickMode);
+    quickToggle.textContent = quickMode ? '⚡ الوضع السريع (شغّال)' : '⚡ الوضع السريع';
+  });
+
+  manualToggleBtn.addEventListener('click', ()=>{
+    manualRow.style.display = manualRow.style.display === 'none' ? 'flex' : 'none';
+  });
+  manualAdd.addEventListener('click', function(){
+    let val = manualInput.value.trim();
+    if(!val) return;
+    val = detectSearchTrigger(val);
+    val.split(/\s+/).filter(Boolean).forEach(classifyAndAdd);
+    finalizePlate();
+    manualInput.value = '';
+  });
+  manualInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') manualAdd.click(); });
+
+  function downloadLog(filterFn, filenamePart){
+    const list = filterFn ? allAttempts.filter(filterFn) : allAttempts;
+    if(list.length === 0) return;
+    const statusLabel = s => s==='wanted' ? 'مطلوب' : (s==='bad' ? 'تعذر التعرف' : 'سليمة');
+    const header = 'الوقت,الحروف,الأرقام,الحالة';
+    const rows = list.map(a => `${a.time},${a.letters},${a.numbers},${statusLabel(a.status)}`);
+    const csvContent = '\uFEFF' + [header, ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+    a.href = url; a.download = `${filenamePart}-${stamp}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  downloadLogBtn.addEventListener('click', () => downloadLog(null, 'سجل-كل-اللوحات'));
+  downloadOkBtn.addEventListener('click', () => downloadLog(a => a.status === 'ok', 'لوحات-سليمة'));
+  downloadWantedBtn.addEventListener('click', () => downloadLog(a => a.status === 'wanted', 'لوحات-مطلوبة'));
+
+  // tabs
+  const tabs = { 'tab-scan': document.getElementById('tab-scan'), 'tab-wanted': document.getElementById('tab-wanted'), 'tab-all': document.getElementById('tab-all') };
+  const navBtns = document.querySelectorAll('nav.bottom-nav button');
+  navBtns.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      navBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      Object.values(tabs).forEach(t=>t.classList.remove('active'));
+      tabs[btn.dataset.tab].classList.add('active');
+    });
+  });
+
+  // theme toggle (light / dark)
+  let dark = false;
+  themeBtn.addEventListener('click', ()=>{
+    dark = !dark;
+    document.body.style.background = dark ? '#0c1614' : '';
+    themeBtn.textContent = dark ? '☀️' : '🌙';
+  });
+
+  // reset session
+  resetBtn.addEventListener('click', ()=>{
+    if(listening) stopSession();
+    allAttempts = []; plateCount = 0; sessionCount.textContent = 0;
+    plateBody.innerHTML = '<tr class="empty-row"><td colspan="3">لسه مفيش لوحات — دوسي المايك وابدئي الكلام</td></tr>';
+    renderWantedTab(); renderAllTab();
+  });
+
+  wantedList.value = 'ر ب ل 2626\nد ب 1159';
+  refreshWantedCount();
+})();
+</script>
+</body>
+</html>
