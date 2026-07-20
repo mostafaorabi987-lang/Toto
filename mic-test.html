@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اختبار المايك</title>
+<style>
+  body{ font-family: sans-serif; background:#0d1b2a; color:#fff; padding:20px; line-height:1.8; }
+  h1{ font-size:20px; }
+  .box{ background:#16283d; border-radius:12px; padding:14px; margin:12px 0; font-size:14px; word-break:break-word; }
+  .ok{ color:#4bd88a; }
+  .bad{ color:#ff6b6b; }
+  button{ width:100%; padding:16px; font-size:18px; border-radius:12px; border:none; background:#2d8cff; color:#fff; margin-top:10px; }
+  #log{ white-space:pre-wrap; font-family:monospace; font-size:12.5px; background:#000; padding:10px; border-radius:8px; max-height:300px; overflow-y:auto; }
+</style>
+</head>
+<body>
+<h1>🎙️ اختبار المايك والتعرف الصوتي</h1>
+
+<div class="box" id="envBox">بيتفحص الجهاز...</div>
+
+<button id="startBtn">ابدئي اختبار المايك</button>
+
+<div class="box">
+  <b>السجل الكامل (ابعتيلي اللي هيظهر هنا):</b>
+  <div id="log">—</div>
+</div>
+
+<script>
+const envBox = document.getElementById('envBox');
+const logEl = document.getElementById('log');
+const startBtn = document.getElementById('startBtn');
+
+function log(msg){
+  const t = new Date().toLocaleTimeString('ar-EG');
+  logEl.textContent += `\n[${t}] ${msg}`;
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const secure = window.isSecureContext;
+const ua = navigator.userAgent;
+const isInApp = /FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Line\/|MicroMessenger|TikTok/i.test(ua);
+
+envBox.innerHTML = `
+  <div>الرابط آمن (https): <span class="${secure?'ok':'bad'}">${secure ? 'أيوة ✅' : 'لأ ❌'}</span></div>
+  <div>التعرف الصوتي متاح في المتصفح: <span class="${SR?'ok':'bad'}">${SR ? 'أيوة ✅' : 'لأ ❌'}</span></div>
+  <div>متصفح مدمج (واتساب/فيسبوك..): <span class="${isInApp?'bad':'ok'}">${isInApp ? 'أيوة ⚠️' : 'لأ ✅'}</span></div>
+  <div style="margin-top:8px; font-size:11px; opacity:0.7;">${ua}</div>
+`;
+
+logEl.textContent = 'جاهز.';
+
+startBtn.addEventListener('click', async () => {
+  logEl.textContent = '';
+  log('دوستِ زرار الاختبار');
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    log('❌ المتصفح مش بيدعم getUserMedia خالص');
+    return;
+  }
+
+  log('بيطلب إذن المايك...');
+  let stream;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    log('✅ اتاخد إذن المايك بنجاح');
+  }catch(err){
+    log('❌ اتمنع إذن المايك: ' + err.name + ' - ' + err.message);
+    return;
+  }
+
+  // audio level meter to confirm the mic hardware itself is capturing sound
+  try{
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaStreamSource(stream);
+    const analyser = audioCtx.createAnalyser();
+    source.connect(analyser);
+    const data = new Uint8Array(analyser.frequencyBinCount);
+    let maxLevel = 0;
+    const meterInterval = setInterval(()=>{
+      analyser.getByteFrequencyData(data);
+      const avg = data.reduce((a,b)=>a+b,0)/data.length;
+      if(avg > maxLevel) maxLevel = avg;
+    }, 200);
+    setTimeout(()=>{
+      clearInterval(meterInterval);
+      log(`📊 أعلى مستوى صوت اتسجل من المايك في 5 ثواني: ${maxLevel.toFixed(1)} (لو رقم قريب من صفر يبقى المايك مش بيسمع حاجة فعليًا)`);
+    }, 5000);
+  }catch(e){ log('تعذر قياس مستوى الصوت: ' + e.message); }
+
+  if(!SR){
+    log('❌ SpeechRecognition مش موجود في المتصفح ده');
+    return;
+  }
+
+  const recognition = new SR();
+  recognition.lang = 'ar-EG';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => log('🟢 recognition.onstart اتنادت');
+  recognition.onaudiostart = () => log('🎤 onaudiostart — المايك بيوصل صوت للتعرف الصوتي');
+  recognition.onsoundstart = () => log('🔊 onsoundstart — في صوت مسموع');
+  recognition.onspeechstart = () => log('🗣️ onspeechstart — عرف إنه كلام');
+  recognition.onspeechend = () => log('🤐 onspeechend');
+  recognition.onresult = (e) => {
+    for(let i=e.resultIndex; i<e.results.length; i++){
+      const r = e.results[i];
+      log(`📝 نتيجة ${r.isFinal?'نهائية':'مبدئية'}: "${r[0].transcript}"`);
+    }
+  };
+  recognition.onerror = (e) => log('❌ onerror: ' + e.error);
+  recognition.onend = () => log('🔴 recognition.onend اتنادت');
+
+  log('بيبدأ recognition.start()...');
+  try{
+    recognition.start();
+  }catch(e){
+    log('❌ خطأ في recognition.start(): ' + e.message);
+  }
+});
+</script>
+</body>
+</html>
